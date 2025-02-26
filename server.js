@@ -20,11 +20,10 @@ app.post('/whatsapp', (req, res) => {
 
   // Respond with a "Hello, World!" message
   const twilioClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
-  const twilioWppNumber = process.env.TWILIO_WHATSAPP_NUMBER 
 
   twilioClient.messages.create({
     body: 'Hello, World!',
-    from: `whatsapp:${process.env.TWILIO_WHATSAPP_NUMBER}`, 
+    from: 'whatsapp:+14155238886', 
     to: From  // Send the reply to the same phone number that sent the message
   })
   .then((message) => {
