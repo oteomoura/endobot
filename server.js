@@ -22,7 +22,7 @@ app.post('/whatsapp', (req, res) => {
   const twilioClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 
   twilioClient.messages.create({
-    body: 'Hello, World!',
+    body: 'Olá do Endopolítica!',
     from: 'whatsapp:+14155238886', 
     to: From  // Send the reply to the same phone number that sent the message
   })
