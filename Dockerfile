@@ -4,6 +4,9 @@ FROM node:18
 # Set the working directory inside the container
 WORKDIR /usr/src/app
 
+# Copy the .env file 
+COPY .env .env
+
 # Copy package.json and package-lock.json, then install dependencies
 COPY package.json package-lock.json ./
 RUN npm install
