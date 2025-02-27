@@ -1,18 +1,20 @@
-# Use an official Node.js runtime as a parent image
+# Use an official Node.js LTS image as the base
 FROM node:18
 
 # Set the working directory inside the container
 WORKDIR /usr/src/app
 
-# Copy the .env file 
-COPY .env .env
-
-# Copy package.json and package-lock.json, then install dependencies
+# Copy package.json and package-lock.json first (optimizes caching)
 COPY package.json package-lock.json ./
+
+# Install dependencies
 RUN npm install
 
-# Expose the app port (this will be used later)
+# Copy the entire source code (including /src and server.js)
+COPY . .
+
+# Expose the necessary port
 EXPOSE 3000
 
-# Keep the container running (temporary, until we add the app)
+# Start the application
 CMD ["node", "server.js"]

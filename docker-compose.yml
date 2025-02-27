@@ -4,9 +4,10 @@ services:
     build: .
     container_name: endobot
     ports:
-      - "3000:3000"  # Map port 3000 on the host to port 3000 in the container
+      - "3000:3000"  # Expose port 3000 on the host
     env_file:
-      - .env  # Load environment variables from a .env file
+      - .env  # Load environment variables
     volumes:
-      - /var/www/endobot:/usr/src/app  # Sync the project folder with the container
-    restart: always  # Ensure the container restarts if it crashes or the droplet reboots
+      - .:/usr/src/app  # Sync code changes in real-time
+      - /usr/src/app/node_modules  # Prevent overwriting node_modules inside container
+    restart: always  # Restart if the container crashes
