@@ -1,5 +1,5 @@
 # Endobot
-![logo2-vermelho-amarelo](https://github.com/user-attachments/assets/ab03a0d7-fd3e-4c96-88a9-23f8db90190c)
+<img src="https://github.com/user-attachments/assets/ab03a0d7-fd3e-4c96-88a9-23f8db90190c" height="200" >
 
 Endobot is an open-source AI-based WhatsApp chatbot specializing in endometriosis, chronic pain, and women's health. It is designed to provide information, support, and guidance to individuals navigating these conditions.
 
