@@ -5,9 +5,12 @@ import { generateEmbedding } from '../services/embeddingService.js';
 import { supabase } from '../config/supabase.js';
 
 // load BGE-Large-EN model from disk
-const modelPath = "/root/.cache/huggingface/hub";
+const modelPath = "/root/.cache/huggingface/hub/BAAI_bge-large-en-v1.5";
 
-// Load the tokenizer for BGE-Large-EN
+// Ensure transformers uses the correct cache
+process.env.TRANSFORMERS_CACHE = "/root/.cache/huggingface";
+
+// Load the model explicitly
 const tokenizer = await pipeline("feature-extraction", modelPath);
 
 async function chunkTextWithTokens(text, maxTokens = 1000, overlapTokens = 50) {
