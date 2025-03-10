@@ -13,7 +13,7 @@ env.localModelPath = `${process.env.TRANSFORMERS_CACHE}/hub/BAAI_bge-large-en-v1
 env.allowRemoteModels = false;
 
 // Load the model explicitly
-const tokenizer = await pipeline("feature-extraction");
+const tokenizer = await pipeline("feature-extraction", env.localModelPath);
 
 async function chunkTextWithTokens(text, maxTokens = 1000, overlapTokens = 50) {
   // Tokenize input
