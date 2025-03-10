@@ -4,11 +4,10 @@ import { pipeline } from "@xenova/transformers";
 import { generateEmbedding } from '../services/embeddingService.js';
 import { supabase } from '../config/supabase.js';
 
-// load BGE-Large-EN model from disk
-const modelPath = "/root/.cache/huggingface/hub/BAAI_bge-large-en-v1.5";
-
 // Ensure transformers uses the correct cache
-process.env.TRANSFORMERS_CACHE = "/root/.cache/huggingface";
+process.env.TRANSFORMERS_CACHE = process.env.TRANSFORMERS_CACHE || "/root/.cache/huggingface";
+
+const modelPath = `${process.env.TRANSFORMERS_CACHE}/hub/BAAI_bge-large-en-v1.5`;
 
 // Load the model explicitly
 const tokenizer = await pipeline("feature-extraction", modelPath);
@@ -37,12 +36,12 @@ async function chunkTextWithTokens(text, maxTokens = 1000, overlapTokens = 50) {
 
 async function insertChunksFromFile(filePath) {
   try {
-    console.log("📂 Reading text from file:", filePath);
+    console.log("Reading text from file:", filePath);
     const text = await fs.readFile(filePath, 'utf-8');
 
-    if (!text.trim()) throw new Error("❌ The file is empty.");
+    if (!text.trim()) throw new Error("The file is empty.");
 
-    console.log("📄 Loaded Text:", text.slice(0, 100), "...");
+    console.log("Loaded Text:", text.slice(0, 100), "...");
 
     // Step 1: Use LangChain's RecursiveCharacterTextSplitter
     const splitter = new RecursiveCharacterTextSplitter({
@@ -69,7 +68,7 @@ async function insertChunksFromFile(filePath) {
       const embedding = await generateEmbedding(chunk);
 
       if (!embedding || embedding.length !== 1024) {
-        console.error(`❌ Skipping chunk - Invalid embedding length: ${embedding?.length}`);
+        console.error(`Skipping chunk - Invalid embedding length: ${embedding?.length}`);
         continue;
       }
 
@@ -84,7 +83,3 @@ async function insertChunksFromFile(filePath) {
     console.error("❌ Failed to insert document:", error.message);
   }
 }
-
-// Run script
-const filePath = 'src/scripts/documents.txt';
-insertChunksFromFile(filePath);
