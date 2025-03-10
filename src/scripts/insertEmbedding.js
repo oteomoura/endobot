@@ -1,9 +1,8 @@
 import fs from 'fs/promises';
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
-import { pipeline } from "@xenova/transformers";
 import { generateEmbedding } from '../services/embeddingService.js';
 import { supabase } from '../config/supabase.js';
-import { env } from '@huggingface/transformers';
+import { env, pipeline } from '@huggingface/transformers';
 
 // Ensure transformers uses the correct cache
 process.env.TRANSFORMERS_CACHE = process.env.TRANSFORMERS_CACHE || "/root/.cache/huggingface";
