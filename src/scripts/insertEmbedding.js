@@ -4,8 +4,11 @@ import { pipeline } from "@xenova/transformers";
 import { generateEmbedding } from '../services/embeddingService.js';
 import { supabase } from '../config/supabase.js';
 
+// load BGE-Large-EN model from disk
+const modelPath = "/root/.cache/huggingface/hub";
+
 // Load the tokenizer for BGE-Large-EN
-const tokenizer = await pipeline("feature-extraction", "BAAI/bge-large-en-v1.5");
+const tokenizer = await pipeline("feature-extraction", modelPath);
 
 async function chunkTextWithTokens(text, maxTokens = 1000, overlapTokens = 50) {
   // Tokenize input
