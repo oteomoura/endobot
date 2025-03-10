@@ -3,14 +3,18 @@ import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import { pipeline } from "@xenova/transformers";
 import { generateEmbedding } from '../services/embeddingService.js';
 import { supabase } from '../config/supabase.js';
+import { env } from '@huggingface/transformers';
 
 // Ensure transformers uses the correct cache
 process.env.TRANSFORMERS_CACHE = process.env.TRANSFORMERS_CACHE || "/root/.cache/huggingface";
 
-const modelPath = `${process.env.TRANSFORMERS_CACHE}/hub/BAAI_bge-large-en-v1.5`;
+env.localModelPath = `${process.env.TRANSFORMERS_CACHE}/hub/BAAI_bge-large-en-v1.5`;
+
+// Disable the loading of remote models from the Hugging Face Hub:
+env.allowRemoteModels = false;
 
 // Load the model explicitly
-const tokenizer = await pipeline("feature-extraction", modelPath);
+const tokenizer = await pipeline("feature-extraction");
 
 async function chunkTextWithTokens(text, maxTokens = 1000, overlapTokens = 50) {
   // Tokenize input
