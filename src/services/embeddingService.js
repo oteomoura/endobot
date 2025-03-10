@@ -11,7 +11,7 @@ export async function generateEmbedding(text) {
   try {
     const payload = buildEmbeddingQueryPayload(text)
     const response = await togetherAiClient.post(EMBEDDING_MODEL_URL, payload);
-    return response.data.embedding; // Expecting an array of numbers
+    return response?.data?.data?.[0]?.embedding ?? null; // Expecting an array of numbers
   } catch (error) {
     console.error('Error generating embedding:', error);
     throw error;
