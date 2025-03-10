@@ -9,10 +9,10 @@ export async function handleIncomingWhatsAppMessage(req, res) {
 
   try {
     // Generate embedding for the user query
-    const queryEmbedding = await generateEmbedding(Body);
+    const embedding = await generateEmbedding(Body);
 
     // Retrieve domain-specific knowledge from Supabase
-    const context = await getRelevantDocuments(queryEmbedding);
+    const context = await getRelevantDocuments(embedding);
 
     // Construct the prompt for the inference model
     const prompt = `Here is some relevant context:\n${context}\n\nUser Query: ${Body}\n\nAnswer:`;
