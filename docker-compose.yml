@@ -1,4 +1,3 @@
-version: '3'
 services:
   app:
     build: .
@@ -7,6 +6,8 @@ services:
       - "3000:3000"  # Expose port 3000 on the host
     env_file:
       - .env  # Load environment variables
+    environment:
+      - TRANSFORMERS_CACHE=/root/.cache/huggingface  # Persist transformer cache path
     volumes:
       - .:/usr/src/app  # Sync code changes in real-time
       - /usr/src/app/node_modules  # Prevent overwriting node_modules inside container
