@@ -23,6 +23,7 @@ RUN mkdir -p $TRANSFORMERS_CACHE/hub/BAAI_bge-large-en-v1.5 && \
     wget -nc https://huggingface.co/BAAI/bge-large-en-v1.5/resolve/main/vocab.txt && \
     wget -nc https://huggingface.co/BAAI/bge-large-en-v1.5/resolve/main/model.safetensors
 
+
 # Copy the entire source code (including /src and server.js)
 COPY . .
 
