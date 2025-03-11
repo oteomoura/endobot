@@ -7,10 +7,10 @@ import { env, pipeline } from '@huggingface/transformers';
 // Ensure transformers uses the correct cache
 process.env.TRANSFORMERS_CACHE = process.env.TRANSFORMERS_CACHE || "/root/.cache/huggingface";
 
+// Ensure Hugging Face transformers use the local model
+env.allowRemoteModels = false; 
+env.allowLocalModels = true;  
 env.localModelPath = `${process.env.TRANSFORMERS_CACHE}/hub/BAAI_bge-large-en-v1.5`;
-
-// Disable the loading of remote models from the Hugging Face Hub:
-env.allowRemoteModels = false;
 
 // Load the model explicitly
 const tokenizer = await pipeline("feature-extraction", env.localModelPath);
