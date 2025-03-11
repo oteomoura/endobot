@@ -4,13 +4,8 @@ FROM node:18
 # Set the working directory inside the container
 WORKDIR /usr/src/app
 
-<<<<<<< Updated upstream
-# Install system dependencies, including python3-venv
-RUN apt-get update && apt-get install -y python3-pip python3-venv wget
-=======
 # Install system dependencies required for Node.js
 RUN apt-get update && apt-get install -y wget && rm -rf /var/lib/apt/lists/*
->>>>>>> Stashed changes
 
 # Install Node.js dependencies first (optimizes caching)
 COPY package.json package-lock.json ./
@@ -19,15 +14,11 @@ RUN npm install
 # Define a build argument to enable or disable embedding insertion
 ARG ENABLE_EMBEDDING=false
 
+# Copy the application source code
+COPY . .
+
 # Only run this logic if we need to insert new embeddings into the database
 # and save memory resources on the server
-
-<<<<<<< Updated upstream
-# Install Python and ONNX dependencies inside a virtual environment
-RUN python3 -m venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
-RUN pip install --no-cache-dir torch onnx onnxruntime transformers
-=======
 RUN if [ "$ENABLE_EMBEDDING" = "true" ]; then \
       echo "🚀 Setting up embedding dependencies..."; \
       \
@@ -64,10 +55,6 @@ RUN if [ "$ENABLE_EMBEDDING" = "true" ]; then \
     else \
       echo "⚠️ Skipping embedding setup (ENABLE_EMBEDDING=false)"; \
     fi
->>>>>>> Stashed changes
-
-# Copy the application source code
-COPY . .
 
 # Expose the necessary port
 EXPOSE 3000
