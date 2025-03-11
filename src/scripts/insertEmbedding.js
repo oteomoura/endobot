@@ -2,33 +2,46 @@ import fs from 'fs/promises';
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import { generateEmbedding } from '../services/embeddingService.js';
 import { supabase } from '../config/supabase.js';
-import { env, pipeline } from '@huggingface/transformers';
+import { AutoTokenizer, AutoModel } from '@huggingface/transformers';
 
-// Ensure transformers uses the correct cache
-process.env.TRANSFORMERS_CACHE = process.env.TRANSFORMERS_CACHE || "/root/.cache/huggingface";
+// Set correct ONNX model path
+process.env.TRANSFORMERS_CACHE = "/root/.cache/huggingface";
+const modelPath = "/root/.cache/huggingface/hub/BAAI_bge-large-en-v1.5/";
 
-// Ensure Hugging Face transformers use the local model
-env.allowRemoteModels = false; 
-env.allowLocalModels = true;  
-env.localModelPath = `${process.env.TRANSFORMERS_CACHE}/hub/BAAI_bge-large-en-v1.5`;
+// Load the tokenizer from the ONNX directory
+const tokenizer = await AutoTokenizer.from_pretrained(modelPath, { 
+  local_files_only: true, 
+  use_fast: false
+});
 
-// Load the model explicitly
-const tokenizer = await pipeline("feature-extraction", env.localModelPath);
+// Load the ONNX model
+const model = await AutoModel.from_pretrained(modelPath, { 
+  local_files_only: true, 
+  trust_remote_code: false
+});
+
+console.log("✅ ONNX Model and Tokenizer Loaded Successfully!");
 
 async function chunkTextWithTokens(text, maxTokens = 1000, overlapTokens = 50) {
-  // Tokenize input
-  const tokens = await tokenizer.tokenizer(text);
-  const inputIds = tokens.input_ids;
+  // Tokenize input correctly
+  const tokens = tokenizer.encode(text.replace(/\n/g, " "), { add_special_tokens: true });
+
+  console.log("🔢 Tokenized IDs:", tokens);
+
+  if (tokens.length === 0) {
+    console.error("❌ Tokenizer produced 0 tokens. Possible issue with encoding.");
+    return [];
+  }
 
   const chunks = [];
   let start = 0;
 
-  while (start < inputIds.length) {
-    const end = Math.min(start + maxTokens, inputIds.length);
-    const chunkTokens = inputIds.slice(start, end);
+  while (start < tokens.length) {
+    const end = Math.min(start + maxTokens, tokens.length);
+    const chunkTokens = tokens.slice(start, end);
 
     // Convert tokens back to text
-    const chunkText = tokenizer.tokenizer.decode(chunkTokens, { skip_special_tokens: true });
+    const chunkText = tokenizer.decode(chunkTokens, { skip_special_tokens: true });
     chunks.push(chunkText);
 
     start += maxTokens - overlapTokens; // Move forward with overlap
@@ -56,6 +69,9 @@ async function insertChunksFromFile(filePath) {
     const initialChunks = await splitter.createDocuments([text]);
 
     console.log(`🔹 LangChain created ${initialChunks.length} character chunks`);
+    initialChunks.forEach((chunk, index) => {
+      console.log(`📄 Chunk ${index + 1}: "${chunk.pageContent.slice(0, 100)}..."`);
+    });
 
     // Step 2: Use token-based chunking from Hugging Face
     let finalChunks = [];
@@ -75,14 +91,24 @@ async function insertChunksFromFile(filePath) {
         continue;
       }
 
-      const { data, error } = await supabase
+      const { statusText, error} = await supabase
         .from('documents')
         .insert([{ content: chunk, embedding }]);
 
       if (error) console.error("❌ Error inserting chunk:", error);
-      else console.log("✅ Inserted chunk:", data);
+      else console.log("✅ Inserted chunk! API response:", statusText);
     }
   } catch (error) {
     console.error("❌ Failed to insert document:", error.message);
   }
 }
+
+// Define the file path for insertion
+const FILE_PATH = "src/scripts/documents.txt"; // Adjust if necessary
+
+// Execute the insertion process
+(async () => {
+  console.log("🚀 Starting document insertion...");
+  await insertChunksFromFile(FILE_PATH);
+  console.log("✅ Document insertion completed!");
+})();
