@@ -1,9 +1,9 @@
 import { supabase } from '../config/supabase.js';
 
-export async function getRelevantDocuments(queryEmbedding) {
+export async function getRelevantDocuments(embedding) {
   try {
     const { data, error } = await supabase.rpc('match_documents', {
-      query_embedding: queryEmbedding,
+      query_embedding: embedding,
       match_count: 3, // Top 3 relevant documents
     });
 
