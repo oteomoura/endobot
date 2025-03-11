@@ -58,20 +58,19 @@ Ensure you have the following installed:
    git clone https://github.com/teogenesmoura/endobot.git
    cd endobot
    ```
-2. Install dependencies:
+2. Set up environment variables (`.env` file):
    ```sh
-   npm install
-   ```
-3. Set up environment variables (`.env` file):
-   ```sh
-   TWILIO_ACCOUNT_SID=your_twilio_sid
+   NODE_ENV=production
+   TWILIO_ACCOUNT_SID=your_twilio_account_sid
    TWILIO_AUTH_TOKEN=your_twilio_auth_token
-   SUPABASE_URL=your_supabase_url
-   SUPABASE_KEY=your_supabase_key
+   TWILIO_WHATSAPP_NUMBER=your_whatsapp_number
+   TOGETHER_AI_API_KEY=your_api_key
+   SUPABASE_URL=your_url
+   SUPABASE_API_KEY=your_api_key
    ```
-4. Start the server:
+4. Build and start the container:
    ```sh
-   npm start
+   docker compose build && docker compose up -d 
    ```
 
 ## ❓ FAQ
