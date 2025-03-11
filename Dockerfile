@@ -5,7 +5,8 @@ FROM node:18
 WORKDIR /usr/src/app
 
 # Install system dependencies, including python3-venv
-RUN apt-get update && apt-get install -y python3-pip python3-venv wget
+RUN apt-get update && apt-get install -y python3-pip python3-venv wget && \
+rm -rf /var/lib/apt/lists/*
 
 # Install Node.js dependencies first (optimizes caching)
 COPY package.json package-lock.json ./
@@ -26,9 +27,15 @@ RUN mkdir -p $TRANSFORMERS_CACHE/hub/BAAI_bge-large-en-v1.5 && \
 
 # Install Python and ONNX dependencies inside a virtual environment
 RUN python3 -m venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
-RUN pip install --no-cache-dir torch onnx onnxruntime transformers
 
+ENV PATH="/opt/venv/bin:$PATH"
+
+RUN pip install --no-cache-dir \
+    torch==2.6.0+cpu \
+    onnx \
+    onnxruntime \
+    transformers \
+    --extra-index-url https://download.pytorch.org/whl/cpu
 # Copy the application source code
 COPY . .
 
