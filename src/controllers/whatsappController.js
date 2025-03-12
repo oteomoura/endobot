@@ -4,25 +4,14 @@ import { generateAnswer } from '../services/inferenceService.js';
 import { sendWhatsAppMessage } from '../services/twilioService.js';
 
 export async function handleIncomingWhatsAppMessage(req, res) {
-  const { Body, From } = req.body;
-  console.log(`Received WhatsApp message: ${Body} from: ${From}`);
+  const { Body: userMessage, From: userPhoneNumber } = req.body;
+  console.log(`Received WhatsApp message: ${userMessage} from: ${userPhoneNumber}`);
 
   try {
-    // Generate embedding for the user query
-    const embedding = await generateEmbedding(Body);
-
-    // Retrieve domain-specific knowledge from Supabase
+    const embedding = await generateEmbedding(userMessage);
     const context = await getRelevantDocuments(embedding);
-
-    // Get the generated answer from the LLM
-    const answer = await generateAnswer(context, Body);
-
-    console.log('Answer generated:', answer);
-
-    // Send the generated answer back to the user
-    await sendWhatsAppMessage(From, answer);
-
-    console.log('Sent message:', answer);
+    const answer = await generateAnswer(context, userMessage);
+    await sendWhatsAppMessage(userPhoneNumber, answer);
     res.send('<Response></Response>'); // Required by Twilio
   } catch (error) {
     console.error('Error processing WhatsApp query:', error);
