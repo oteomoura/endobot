@@ -26,8 +26,8 @@ We use **Docker** for deployment on **Digital Ocean** servers to ensure scalabil
 
 1. **Read content from text file, generate embedding representation, and persist it to Supabase ✅**
 2. **Receive Whatsapp message ✅**
-3. **Transform user message to embedding 🔶**
-4. **Fetch relevant documents from the previously generated embeddings 🔶**
+3. **Transform user message to embedding ✅**
+4. **Fetch relevant documents from the previously generated embeddings ✅**
 5. **Return augmented answer to user 🔶**
 6. **Implement CI/CD with GitHub Actions 🔶**
 7. **Provide a demo link 🔶**
