@@ -14,11 +14,10 @@ export async function handleIncomingWhatsAppMessage(req, res) {
     // Retrieve domain-specific knowledge from Supabase
     const context = await getRelevantDocuments(embedding);
 
-    // Construct the prompt for the inference model
-    const prompt = `Here is some relevant context:\n${context}\n\nUser Query: ${Body}\n\nAnswer:`;
-
     // Get the generated answer from the LLM
-    const answer = await generateAnswer(prompt);
+    const answer = await generateAnswer(context, Body);
+
+    console.log('Answer generated:', answer);
 
     // Send the generated answer back to the user
     await sendWhatsAppMessage(From, answer);
