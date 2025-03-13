@@ -15,8 +15,9 @@ export async function handleIncomingWhatsAppMessage(req, res) {
     const context = await getRelevantDocuments(embedding);
     const conversationHistory = await fetchUserConversationHistory(userPhoneNumber);
     const answer = await generateAnswer(userMessage, context, conversationHistory);
-   
-    await storeMessage(userPhoneNumber, answer, 'bot');
+    const finalAnswer = new GuardrailService(answer).call(); //checks dangerous content  
+
+    await storeMessage(userPhoneNumber, finalAnswer, 'bot');
 
     await sendWhatsAppMessage(userPhoneNumber, answer);
     res.send('<Response></Response>'); // Required by Twilio
