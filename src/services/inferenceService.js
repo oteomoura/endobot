@@ -10,9 +10,14 @@ const buildSystemPrompt = () => ({
             Seu objetivo é oferecer informações confiáveis, apoio e orientação prática para ajudar essas mulheres a lidarem melhor com sua saúde.`  
 })
 
-const buildAssistantPrompt = (context) => ({
+const buildContextPrompt = (context) => ({
   role: 'assistant',
   content: `Aqui está contexto relevante para a sua resposta:  ${context}`
+})
+
+const buildConversationHistoryPrompt = (conversationHistory) => ({
+  role: 'assistant',
+  content: `Histórico de mensagens para este usuário: ${conversationHistory}`
 })
 
 const buildUserPrompt = (userMessage) => ({
@@ -20,16 +25,17 @@ const buildUserPrompt = (userMessage) => ({
   content: userMessage
 })
 
-export async function generateAnswer(context, userMessage) {
+export async function generateAnswer(userMessage, context, conversationHistory ) {
   const systemPrompt = buildSystemPrompt();
-  const assistantPrompt = buildAssistantPrompt(context);
+  const contextPrompt = buildContextPrompt(context);
   const userPrompt = buildUserPrompt(userMessage);
-  
+  const conversationHistoryPrompt = buildConversationHistoryPrompt(conversationHistory);
+
   try {
     const response = await togetherAiClient.post(COMPLETIONS_API_URL, {
       model: 'meta-llama/Llama-3.3-70B-Instruct-Turbo-Free',
       context_length_exceeded_behavior: 'error',
-      messages: [systemPrompt, assistantPrompt, userPrompt]
+      messages: [systemPrompt, userPrompt, contextPrompt, conversationHistoryPrompt]
     });
 
     return response?.data?.choices?.[0]?.message?.content || 'No content available';  
