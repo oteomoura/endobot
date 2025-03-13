@@ -3,7 +3,7 @@ import { generateEmbedding } from '../services/embeddingService.js';
 import { getRelevantDocuments } from '../services/retrievalService.js';
 import { generateAnswer } from '../services/inferenceService.js';
 import { sendWhatsAppMessage } from '../services/twilioService.js';
-import { GuardrailService } from '../services/guardrailsService.js';
+import GuardrailService from '../services/guardrailsService.js';
 
 export async function handleIncomingWhatsAppMessage(req, res) {
   const { Body: userMessage, From: userPhoneNumber } = req.body;
