@@ -6,7 +6,7 @@ const twilioClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_A
 function buildTwilioPayload (userPhoneNumber, message, template) {
   let twilioPayload = {
     from: `${process.env.TWILIO_WHATSAPP_NUMBER}`,
-    to: `whatsapp:${userPhoneNumber}`,
+    to: userPhoneNumber,
   }
   
   if (template) {
@@ -24,7 +24,7 @@ export async function sendTemplateMessage(userPhoneNumber, message, template) {
     console.log('Twilio payload with template:', twilioPayload);
 
     const response = await twilioClient.messages.create(twilioPayload);
-    console.log('Template twilio payload with template result:', response.sid);
+    console.log('Template twilio payload with template result:', response);
 
     return true; // Successfully sent
   } catch (error) {
