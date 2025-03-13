@@ -1,11 +1,5 @@
 import { supabase } from '../config/supabase.js';
 
-/**
- * Stores a message in the Supabase database.
- * @param {string} userPhoneNumber - The phone number of the user.
- * @param {string} message - The message content.
- * @param {'user' | 'bot'} sender - Who sent the message.
- */
 export async function storeMessage(userPhoneNumber, message, sender) {
   try {
     if (!message || message.trim() === "") {
