@@ -5,7 +5,7 @@ const twilioClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_A
 
 function buildTwilioPayload (userPhoneNumber, message, template) {
   let twilioPayload = {
-    messagingServiceSid: `${process.env.MESSAGING_SERVICE_SID}`,
+    from: `${process.env.TWILIO_WHATSAPP_NUMBER}`,
     to: userPhoneNumber,
   }
   
