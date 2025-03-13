@@ -1,11 +1,16 @@
 import { supabase } from '../config/supabase.js';
 
-export async function fetchUserConversationHistory(userPhoneNumber, limit = 5) {
+function removeWhatsAppPrefix(userPhoneNumber) {
+  return userPhoneNumber.startsWith('whatsapp:') ? userPhoneNumber.replace('whatsapp:', '') : userPhoneNumber;
+}
+
+export async function fetchUserConversationHistory(userPhoneNumber, limit = 10) {
+  
   try {
     const { data: messageHistory, error } = await supabase
       .from('messages')
       .select('message, sender')
-      .eq('user_phone_number', userPhoneNumber)
+      .eq('user_phone_number', removeWhatsAppPrefix(userPhoneNumber))
       .order('created_at', { descending: true }) 
       .limit(limit);
 
@@ -29,7 +34,7 @@ export async function storeMessage(userPhoneNumber, message, sender) {
     }
 
     const { error } = await supabase.from('messages').insert([
-      { user_phone_number: userPhoneNumber, message: message, sender: sender }
+      { user_phone_number: removeWhatsAppPrefix(userPhoneNumber), message: message, sender: sender }
     ]);
 
     if (error) throw new Error(`Failed to save message: ${error.message}`);
