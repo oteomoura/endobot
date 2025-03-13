@@ -1,4 +1,4 @@
-export default class GuardrailService {
+export class GuardrailService {
     constructor(answer) {
       this.answer = answer;
     }
