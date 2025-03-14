@@ -16,7 +16,7 @@ export async function handleIncomingWhatsAppMessage(req, res) {
     const context = await getRelevantDocuments(embedding);
     const conversationHistory = await fetchUserConversationHistory(userPhoneNumber);
     const answer = await generateAnswer(userMessage, context, conversationHistory);
-    const finalAnswer = new GuardrailService(answer).call(); //checks dangerous content  
+    const finalAnswer = new GuardrailService(answer, userMessage).call(); //checks dangerous content  
 
     await storeMessage(userPhoneNumber, finalAnswer, 'bot');
 
