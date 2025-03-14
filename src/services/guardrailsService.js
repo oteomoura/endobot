@@ -5,7 +5,7 @@ export class GuardrailService {
     }
   
     call() {
-      if (!answer?.trim()) return "";
+      if (!this.answer?.trim()) return "";
 
       this.#removeSpeakerPrefix();
       this.#removeRepeatedUserMessage();
