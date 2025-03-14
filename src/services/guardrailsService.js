@@ -1,18 +1,26 @@
 export class GuardrailService {
-    constructor(answer) {
-      this.answer = answer;
+    constructor(answer, userMessage) {
+      this.answer = answer?.trim() ?? "";
+      this.userMessage = userMessage?.trim() ?? "";
     }
   
     call() {
       if (!this.answer?.trim()) return "";
 
       this.#removeSpeakerPrefix();
+      this.#removeRepeatedUserMessage();
       this.#checkMentalHealthDangerWords();
       return this.answer;
     }
   
     #removeSpeakerPrefix() {
       this.answer = this.answer.replaceAll("Bot: ", "").replaceAll("User: ", "");
+    }
+
+    #removeRepeatedUserMessage() {
+      if (this.userMessage && this.answer.startsWith(this.userMessage)) {
+        this.answer = this.answer.slice(this.userMessage.length).trim();
+      }
     }
   
     #checkMentalHealthDangerWords() {
