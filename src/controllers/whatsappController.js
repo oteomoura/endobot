@@ -20,7 +20,7 @@ export async function handleIncomingWhatsAppMessage(req, res) {
 
     await storeMessage(userPhoneNumber, finalAnswer, 'bot');
 
-    await sendWhatsAppMessage(userPhoneNumber, answer);
+    await sendWhatsAppMessage(userPhoneNumber, finalAnswer);
     res.send('<Response></Response>'); // Required by Twilio
   } catch (error) {
     console.error('Error processing WhatsApp query:', error);

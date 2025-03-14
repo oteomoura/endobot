@@ -17,9 +17,11 @@ export async function fetchUserConversationHistory(userPhoneNumber, limit = 10) 
     if (error) throw new Error(`Failed to fetch conversation history: ${error.message}`);
 
     // Format history into a structured conversation
-    return messageHistory
-      .map(m => `${m.sender === 'user' ? 'User' : 'Bot'}: ${m.message}`)
+    const formattedHistory = messageHistory
+      .map(m => (m.sender === 'user' ? `User: ${m.message}` : `Bot: ${m.message}`))
       .join('\n');
+
+    return formattedHistory
   } catch (error) {
     console.error('❌ Error fetching conversation history:', error.message);
     return ''; // Return empty string if history cannot be retrieved
