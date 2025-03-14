@@ -4,6 +4,8 @@ export class GuardrailService {
     }
   
     call() {
+      if (!this.answer?.trim()) return "";
+
       this.#removeSpeakerPrefix();
       this.#checkMentalHealthDangerWords();
       return this.answer;
