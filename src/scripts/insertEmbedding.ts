@@ -5,12 +5,15 @@ import { supabase } from '../config/supabase.js';
 
 /**
  * Breaks text into smaller chunks based on character count
- * @param {string} text Text content to chunk
- * @param {number} maxChunkSize Maximum size of each chunk
- * @param {number} chunkOverlap Number of characters to overlap between chunks
- * @returns {Promise<string[]>} Array of text chunks
+ * @param text Text content to chunk
+ * @param maxChunkSize Maximum size of each chunk
+ * @param chunkOverlap Number of characters to overlap between chunks
  */
-async function createTextChunks(text, maxChunkSize = 1000, chunkOverlap = 100) {
+async function createTextChunks(
+  text: string, 
+  maxChunkSize: number = 1000, 
+  chunkOverlap: number = 100
+): Promise<string[]> {
   // Use LangChain's splitter for intelligent chunking
   const splitter = new RecursiveCharacterTextSplitter({
     chunkSize: maxChunkSize,
@@ -25,9 +28,8 @@ async function createTextChunks(text, maxChunkSize = 1000, chunkOverlap = 100) {
 /**
  * Processes a text file, splits it into chunks, generates embeddings,
  * and stores the chunks with their embeddings in Supabase
- * @param {string} filePath Path to the text file
  */
-async function insertChunksFromFile(filePath) {
+async function insertChunksFromFile(filePath: string): Promise<void> {
   try {
     console.log("Reading text from file:", filePath);
     const text = await fs.readFile(filePath, 'utf-8');
@@ -76,7 +78,7 @@ async function insertChunksFromFile(filePath) {
           console.log(`✅ Successfully inserted chunk ${index + 1}`);
           successCount++;
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error(`Error processing chunk ${index + 1}:`, error.message);
         errorCount++;
       }
@@ -91,7 +93,7 @@ async function insertChunksFromFile(filePath) {
     - Successfully inserted: ${successCount}
     - Errors: ${errorCount}
     `);
-  } catch (error) {
+  } catch (error: any) {
     console.error("❌ Failed to process document:", error.message);
   }
 }
@@ -104,4 +106,4 @@ const FILE_PATH = "src/scripts/documents.txt"; // Adjust if necessary
   console.log("🚀 Starting document embedding insertion...");
   await insertChunksFromFile(FILE_PATH);
   console.log("✅ Document insertion completed!");
-})();
+})(); 
