@@ -1,6 +1,11 @@
 import { togetherAiClient, COMPLETIONS_API_URL } from '../config/togetherAi.js';
 
-const buildSystemPrompt = () => ({
+interface ChatMessage {
+  role: string;
+  content: string;
+}
+
+const buildSystemPrompt = (): ChatMessage => ({
   role: 'system',
   content: `Você é uma assistente especializada em saúde da mulher, com foco em endometriose, dor crônica e condições relacionadas.
             Seu público são mulheres entre 18 e 55 anos que sofrem ou suspeitam sofrer dessas condições.
@@ -10,22 +15,31 @@ const buildSystemPrompt = () => ({
             Seu objetivo é oferecer informações confiáveis, apoio e orientação prática para ajudar essas mulheres a lidarem melhor com sua saúde.`  
 })
 
-const buildContextPrompt = (context) => ({
+const buildContextPrompt = (context: string | null): ChatMessage => ({
   role: 'assistant',
-  content: `Aqui está contexto relevante para a sua resposta:  ${context}`
+  content: `Aqui está contexto relevante para a sua resposta:  ${context || 'Sem contexto disponível'}`
 })
 
-const buildConversationHistoryPrompt = (conversationHistory) => ({
+const buildConversationHistoryPrompt = (conversationHistory: string | null): ChatMessage => ({
   role: 'assistant',
-  content: `Histórico de mensagens para este usuário: ${conversationHistory}`
+  content: `Histórico de mensagens para este usuário: ${conversationHistory || 'Sem histórico disponível'}`
 })
 
-const buildUserPrompt = (userMessage) => ({
+const buildUserPrompt = (userMessage: string): ChatMessage => ({
   role: 'user',
   content: userMessage
 })
 
-export async function generateAnswer(userMessage, context, conversationHistory ) {
+export async function generateAnswer(
+  userMessage: string, 
+  context: string | null = null, 
+  conversationHistory: string | null = null
+): Promise<string | null> {
+  if (!userMessage || userMessage.trim() === '') {
+    console.warn('Empty user message provided to generateAnswer');
+    return null;
+  }
+
   const systemPrompt = buildSystemPrompt();
   const contextPrompt = buildContextPrompt(context);
   const userPrompt = buildUserPrompt(userMessage);
@@ -38,9 +52,9 @@ export async function generateAnswer(userMessage, context, conversationHistory )
       messages: [systemPrompt, userPrompt, contextPrompt, conversationHistoryPrompt]
     });
 
-    return response?.data?.choices?.[0]?.message?.content || 'No content available';  
-  } catch (error) {
+    return response?.data?.choices?.[0]?.message?.content || null;  
+  } catch (error: any) {
     console.error('Error generating answer:', error);
     throw error;
   }
-}
+} 

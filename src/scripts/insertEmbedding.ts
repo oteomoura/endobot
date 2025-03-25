@@ -22,7 +22,7 @@ const model = await AutoModel.from_pretrained(modelPath, {
 
 console.log("✅ ONNX Model and Tokenizer Loaded Successfully!");
 
-async function chunkTextWithTokens(text, maxTokens = 1000, overlapTokens = 50) {
+async function chunkTextWithTokens(text: string, maxTokens: number = 1000, overlapTokens: number = 50): Promise<string[]> {
   // Tokenize input correctly
   const tokens = tokenizer.encode(text.replace(/\n/g, " "), { add_special_tokens: true });
 
@@ -33,7 +33,7 @@ async function chunkTextWithTokens(text, maxTokens = 1000, overlapTokens = 50) {
     return [];
   }
 
-  const chunks = [];
+  const chunks: string[] = [];
   let start = 0;
 
   while (start < tokens.length) {
@@ -50,7 +50,7 @@ async function chunkTextWithTokens(text, maxTokens = 1000, overlapTokens = 50) {
   return chunks;
 }
 
-async function insertChunksFromFile(filePath) {
+async function insertChunksFromFile(filePath: string): Promise<void> {
   try {
     console.log("Reading text from file:", filePath);
     const text = await fs.readFile(filePath, 'utf-8');
@@ -74,7 +74,7 @@ async function insertChunksFromFile(filePath) {
     });
 
     // Step 2: Use token-based chunking from Hugging Face
-    let finalChunks = [];
+    let finalChunks: string[] = [];
     for (const chunk of initialChunks) {
       const tokenChunks = await chunkTextWithTokens(chunk.pageContent, 256, 50);
       finalChunks.push(...tokenChunks);
@@ -98,7 +98,7 @@ async function insertChunksFromFile(filePath) {
       if (error) console.error("❌ Error inserting chunk:", error);
       else console.log("✅ Inserted chunk! API response:", statusText);
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error("❌ Failed to insert document:", error.message);
   }
 }
@@ -111,4 +111,4 @@ const FILE_PATH = "src/scripts/documents.txt"; // Adjust if necessary
   console.log("🚀 Starting document insertion...");
   await insertChunksFromFile(FILE_PATH);
   console.log("✅ Document insertion completed!");
-})();
+})(); 

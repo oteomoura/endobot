@@ -1,10 +1,13 @@
 export class GuardrailService {
-    constructor(answer, userMessage) {
+    private answer: string;
+    private userMessage: string;
+
+    constructor(answer: string | null | undefined, userMessage: string | null | undefined) {
       this.answer = answer?.trim() ?? "";
       this.userMessage = userMessage?.trim() ?? "";
     }
   
-    call() {
+    call(): string {
       if (!this.answer?.trim()) return "";
 
       this.#removeSpeakerPrefix();
@@ -13,22 +16,22 @@ export class GuardrailService {
       return this.answer;
     }
   
-    #removeSpeakerPrefix() {
+    #removeSpeakerPrefix(): void {
       this.answer = this.answer.replaceAll("Bot: ", "").replaceAll("User: ", "");
     }
 
-    #removeRepeatedUserMessage() {
+    #removeRepeatedUserMessage(): void {
       if (this.userMessage && this.answer.startsWith(this.userMessage)) {
         this.answer = this.answer.slice(this.userMessage.length).trim();
       }
     }
   
-    #checkMentalHealthDangerWords() {
-      const dangerWords = ["suicídio", "desespero", "depressão profunda", "autolesão"];
-      const containsDanger = dangerWords.some(word => this.answer.toLowerCase().includes(word));
+    #checkMentalHealthDangerWords(): void {
+      const dangerWords: string[] = ["suicídio", "desespero", "depressão profunda", "autolesão"];
+      const containsDanger: boolean = dangerWords.some(word => this.answer.toLowerCase().includes(word));
   
       if (containsDanger) {
         this.answer += " ⚠️ Se você estiver passando por dificuldades, por favor, procure apoio profissional.";
       }
     }
-}
+} 

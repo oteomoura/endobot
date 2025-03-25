@@ -1,6 +1,12 @@
 import { supabase } from '../config/supabase.js';
 
-export async function getRelevantDocuments(embedding) {
+interface DocumentMatch {
+  content: string;
+  similarity: number;
+  id: string;
+}
+
+export async function getRelevantDocuments(embedding: number[]): Promise<string> {
   try {
     const { data, error } = await supabase.rpc('match_documents', {
       filter: null,
@@ -9,10 +15,9 @@ export async function getRelevantDocuments(embedding) {
     });
 
     if (error) throw error;
-    return data.map(doc => doc.content).join("\n"); // Combine results
-  } catch (error) {
+    return (data as DocumentMatch[]).map(doc => doc.content).join("\n"); // Combine results
+  } catch (error: any) {
     console.error('Error retrieving documents:', error);
     throw error;
   }
-}
-
+} 

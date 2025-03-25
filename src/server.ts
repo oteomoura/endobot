@@ -1,7 +1,8 @@
-import './src/config/env.js';  // Load this first
+import 'dotenv/config'; // Load environment variables early
+
 import express from 'express';
 import bodyParser from 'body-parser';
-import whatsappRoutes from './src/routes/whatsappRoutes.js';
+import whatsappRoutes from './routes/whatsappRoutes.js';
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -25,4 +26,4 @@ app.use('/api', whatsappRoutes);
 // Start the server
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
-});
+}); 
