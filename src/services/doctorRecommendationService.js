@@ -13,7 +13,7 @@ function shuffleArray(array) {
 
 /**
  * Finds doctors specializing in Endometriosis in a specific city, fetches all,
- * then selects up to 3 random unique doctors from the results.
+ * then selects up to 3 random unique doctors from the results within the application.
  * @param {string} city - The city to search within (case-insensitive).
  * @returns {Promise<object[] | null>} Array of up to 3 unique doctor/clinic info objects, or null on error.
  */
@@ -63,6 +63,7 @@ export async function findDoctorsByCity(city) {
             ...doctor,
             clinic_name: clinic.name,
             clinic_city: clinic.city
+            // Add other clinic details if needed
         }))
     );
 
@@ -77,7 +78,6 @@ export async function findDoctorsByCity(city) {
                 phone_number: assoc.phone_number,
                 email: assoc.email,
                 specialty: assoc.specialty
-                // No need to store clinic info here, just unique doctor info
             });
         }
     });
@@ -108,6 +108,47 @@ export async function findDoctorsByCity(city) {
     console.error(`[Doctor Service] Failed doctor search for city "${normalizedCity}":`, error.message);
     return null; // Indicate failure
   }
+}
+
+/**
+ * Formats raw doctor/clinic data into a concise string for the LLM observation.
+ * @param {object[] | null} doctorClinicData - Array from findDoctorsByCity or null.
+ * @param {string} city - The city requested.
+ * @returns {string} A string summarizing the findings for the LLM.
+ */
+export function formatDoctorDataForLLM(doctorClinicData, city) {
+    if (doctorClinicData === null) {
+        return `[RESULTADO DA BUSCA: Erro ao buscar médicos em ${city}]`;
+    }
+    if (!doctorClinicData || doctorClinicData.length === 0) {
+        return `[RESULTADO DA BUSCA: Nenhum médico encontrado em ${city}]`;
+    }
+
+    // Group by doctor to list clinics concisely
+     const groupedByDoctor = doctorClinicData.reduce((acc, item) => {
+        const key = item.id;
+        if (!acc[key]) {
+            acc[key] = {
+                name: item.name,
+                clinics: []
+            };
+        }
+        if(item.clinic_name && !acc[key].clinics.includes(item.clinic_name)) {
+             acc[key].clinics.push(item.clinic_name);
+        }
+        return acc;
+    }, {});
+
+    // Create a compact string representation
+    const findings = Object.values(groupedByDoctor).map(doc => {
+        let entry = doc.name;
+        if (doc.clinics.length > 0) {
+            entry += ` (Clínica(s): ${doc.clinics.join(', ')})`;
+        }
+        return entry;
+    }).join(', ');
+
+    return `[RESULTADO DA BUSCA: Médicos encontrados em ${city}: ${findings}]`;
 }
 
 /**
