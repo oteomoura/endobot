@@ -6,12 +6,9 @@ import { GuardrailService } from './guardrailsService.js';
 export async function regenerateAndSendShorterAnswer(userPhoneNumber, originalUserMessage, context, conversationHistory, longAnswer) {
   console.log(`[Reprocessing] Attempting to regenerate a shorter answer asynchronously for ${userPhoneNumber}...`);
 
-  // Construct a prompt asking the LLM to summarize the long answer
   const summarizationTaskMessage = `Por favor, resuma a seguinte resposta para ter menos de 1000 caracteres, mantendo a informação essencial e o tom original:\n\n"${longAnswer}"`;
 
   try {
-    // Call generateAnswer again for summarization. Pass the summarization task as the main user message.
-    // Context and history might not be strictly necessary for summarization, passing null for now.
     const shorterAnswerRaw = await generateAnswer(summarizationTaskMessage, null, null);
 
     let shorterFinalAnswer = '';
@@ -20,7 +17,6 @@ export async function regenerateAndSendShorterAnswer(userPhoneNumber, originalUs
       console.warn("[Reprocessing] Summarization attempt failed via LLM or returned empty. Truncating original answer.");
       shorterFinalAnswer = longAnswer.slice(0, 997) + "..."; // Truncate original as fallback
     } else {
-      // Apply guardrails to the shorter answer. Use originalUserMessage for context if needed.
       shorterFinalAnswer = new GuardrailService(shorterAnswerRaw, originalUserMessage).call();
     }
 
