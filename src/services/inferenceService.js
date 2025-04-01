@@ -25,32 +25,6 @@ const buildUserPrompt = (userMessage) => ({
 })
 
 export async function generateAnswer(userMessage, context, conversationHistory ) {
-  console.log(`[MOCK] generateAnswer called with userMessage: "${userMessage.substring(0, 50)}..."`);
-
-  // *** TEMPORARY MOCK LOGIC ***
-  // Check if the user message is the summarization prompt
-  if (userMessage.startsWith("Por favor, resuma")) {
-      // Simulate successful summarization
-      console.log("[MOCK] Simulating successful summarization.");
-      // Return a short summary string
-      return "Este é um resumo curto da resposta original, com menos de 1000 caracteres.";
-      // --- OR ---
-      // Simulate failed/still too long summarization (uncomment to test this path)
-      // console.log("[MOCK] Simulating failed/long summarization.");
-      // return "A ".repeat(1100); // Return another long string
-      // --- OR ---
-      // Simulate summarization returning null/empty
-      // console.log("[MOCK] Simulating null summarization result.");
-      // return null;
-  }
-
-  // Simulate a long initial response for other messages
-  console.log("[MOCK] Simulating a LONG initial response (> 1000 chars).");
-  const longString = "Texto longo simulado. ".repeat(100); // Creates a string > 1000 chars
-  return longString;
-  // *** END TEMPORARY MOCK LOGIC ***
-
-  /* Original code commented out for testing:
   const systemPrompt = buildSystemPrompt();
   const contextPrompt = buildContextPrompt(context);
   const userPrompt = buildUserPrompt(userMessage);
@@ -68,5 +42,4 @@ export async function generateAnswer(userMessage, context, conversationHistory )
     console.error('Error generating answer:', error);
     throw error;
   }
-  */
 }
