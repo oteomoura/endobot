@@ -1,6 +1,7 @@
 import { togetherAiClient, COMPLETIONS_API_URL } from '../config/togetherAi.js';
 import { extractAndParseJson } from '../lib/utils.js';
 import { buildSystemPrompt } from './systemPromptService.js';
+import { sendWhatsAppMessage } from './twilioService.js';
 
 const buildContextPrompt = (context) => ({
   role: 'system',
@@ -28,7 +29,7 @@ const MAX_RETRIES = 3;
 const INITIAL_BACKOFF_MS = 1500;
 const MAX_CONTEXT_HISTORY_LENGTH = 3000;
 
-export async function generateAnswer(userMessage, context, conversationHistory, observation = null) {
+export async function generateAnswer(userMessage, context, conversationHistory, observation = null, userPhoneNumber = null) {
   const systemPrompt = buildSystemPrompt();
 
   let truncatedContext = context;
@@ -70,6 +71,7 @@ export async function generateAnswer(userMessage, context, conversationHistory, 
 
   let retries = 0;
   let currentBackoff = INITIAL_BACKOFF_MS;
+  let retryNotificationSent = false;
 
   while (retries <= MAX_RETRIES) {
     try {
@@ -118,6 +120,16 @@ export async function generateAnswer(userMessage, context, conversationHistory, 
         } else {
             console.warn(`[Inference] Received 429. Retrying after ${waitTimeMs.toFixed(0)}ms (exponential backoff). Retry ${retries}/${MAX_RETRIES}.`);
             currentBackoff = Math.min(currentBackoff * 2, 30000);
+        }
+
+        if (!retryNotificationSent && userPhoneNumber) {
+          console.log(`[Inference] Sending retry notification to ${userPhoneNumber}.`);
+          try {
+            await sendWhatsAppMessage(userPhoneNumber, "Estou processando sua solicitação. Pode levar um pouco mais de tempo que o esperado devido ao alto volume. Agradeço a paciência!");
+            retryNotificationSent = true;
+          } catch (notificationError) {
+            console.error(`[Inference] Failed to send retry notification to ${userPhoneNumber}:`, notificationError);
+          }
         }
 
         await delay(waitTimeMs);
