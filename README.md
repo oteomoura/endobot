@@ -29,8 +29,9 @@ We use **Docker** for deployment on **Digital Ocean** servers to ensure scalabil
 3. **Transform user message to embedding ✅**
 4. **Fetch relevant documents from the previously generated embeddings ✅**
 5. **Return augmented answer to user ✅**
-6. **Set up better project structure (Typescript, unit testing, CI/CD with GitHub Actions and so on) 🔶**
-7. **Provide a demo link 🔶**
+6. **Implement agentic behavior to recommend Endometriosis doctors by city 🔶**
+7. **Set up better project structure (Typescript, unit testing, CI/CD with GitHub Actions and so on) 🔶**
+8. **Provide a demo link 🔶**
 
 ## 🏗️ Tech Stack
 
