@@ -53,7 +53,7 @@ export async function generateAnswer(userMessage, context, conversationHistory, 
   }
 
   const contextPrompt = truncatedContext ? buildContextPrompt(truncatedContext) : null;
-  const userPrompt = buildUserPrompt(userMessage);
+  const userPrompt = userMessage ? buildUserPrompt(userMessage) : null;
   const conversationHistoryPrompt = truncatedHistory ? buildConversationHistoryPrompt(truncatedHistory) : null;
   const observationPrompt = observation ? buildObservationPrompt(observation) : null;
 
@@ -64,8 +64,13 @@ export async function generateAnswer(userMessage, context, conversationHistory, 
       ...(contextPrompt ? [contextPrompt] : []),
       ...(conversationHistoryPrompt ? [conversationHistoryPrompt] : []),
       ...(observationPrompt ? [observationPrompt] : []),
-      userPrompt
+      ...(userPrompt ? [userPrompt] : [])
   ].filter(Boolean);
+
+  if (messages.length === 0 || messages.every(m => !m.content?.trim())) {
+      console.error("[Inference] Message array is effectively empty. Cannot call LLM.");
+      return { action: 'finalAnswer', message: 'Desculpe, ocorreu um erro ao preparar sua solicitação.' };
+  }
 
   console.log("[Inference] Messages sent to LLM:", JSON.stringify(messages, null, 2));
 
