@@ -5,7 +5,7 @@ Endobot is an open-source AI-based WhatsApp chatbot specializing in endometriosi
 
 ## 📌 About the Project
 
-Endobot is being developed as part of the **Endopolítica** initiative ([Instagram](https://instagram.com/endopolitica)), co-founded by my wife and me. Our mission is to empower and support women at all stages of their journey with endometriosis—whether they are in the early investigation phase, undergoing treatment, or recovering from surgery.
+Endobot is being developed as part of the **Endopolítica** initiative ([Instagram](https://instagram.com/endopolitica)), which my wife and I co-founded. Our mission is to empower and support women at all stages of their journey with endometriosis—whether they are in the early investigation phase, undergoing treatment, or recovering from surgery.
 
 This project is supported by the **StartBSB** program at **Fundação de Apoio à Pesquisa do Distrito Federal (FAP/DF)**, a government-led research funding agency.
 
@@ -18,9 +18,9 @@ This project is supported by the **StartBSB** program at **Fundação de Apoio �
 
 ## 🔄 Project Status & Roadmap
 
-This project is still in an **active early development stage**. We plan to incorporate **Retrieval-Augmented Generation (RAG) features** soon to enhance the chatbot's ability to provide accurate and context-aware responses.
+This project is still in an **active early development stage**. We plan to incorporate Retrieval-Augmented Generation (RAG) features and agentic behavior to enhance the chatbot's ability to provide accurate and context-aware responses.
 
-We use **Docker** for deployment on **Digital Ocean** servers to ensure scalability and ease of maintenance.
+We use **Docker** for deployment to ensure scalability and ease of maintenance.
 
 ### Feature Roadmap
 
@@ -30,7 +30,7 @@ We use **Docker** for deployment on **Digital Ocean** servers to ensure scalabil
 4. **Fetch relevant documents from the previously generated embeddings ✅**
 5. **Return augmented answer to user ✅**
 6. **Implement agentic behavior to recommend Endometriosis doctors by city 🔶**
-7. **Set up better project structure (Typescript, unit testing, CI/CD with GitHub Actions and so on) 🔶**
+7. **Set up better project structure (Typescript, Unit testing, Lint, CI/CD with GitHub Actions and so on) 🔶**
 8. **Provide a demo link 🔶**
 
 ## 🏗️ Tech Stack
@@ -38,7 +38,7 @@ We use **Docker** for deployment on **Digital Ocean** servers to ensure scalabil
 - **Backend**: Node.js (Express.js)
 - **Database**: Supabase
 - **Vector Store**: Supabase for storing message embeddings
-- **AI Model Hosting**: Baseten
+- **AI Model Hosting**: Agnostic (At the moment, Together AI).
 - **Messaging API**: Twilio (WhatsApp integration)
 - **Deployment**: Docker on Digital Ocean
 
