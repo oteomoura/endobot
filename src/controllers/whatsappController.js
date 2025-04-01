@@ -27,7 +27,7 @@ export async function handleIncomingWhatsAppMessage(req, res) {
     const context = await getRelevantDocuments(embedding);
     const conversationHistory = await fetchUserConversationHistory(userPhoneNumber);
 
-    let llmResponse = await generateAnswer(userMessage, context, conversationHistory);
+    let llmResponse = await generateAnswer(userMessage, context, conversationHistory, null, userPhoneNumber);
     console.log(`LLM action for ${userPhoneNumber}: ${llmResponse?.action}`);
 
     switch (llmResponse?.action) {
@@ -40,7 +40,7 @@ export async function handleIncomingWhatsAppMessage(req, res) {
           console.log(`Observation created for LLM: ${observation}`);
 
           console.log(`Calling LLM again for synthesis with observation for ${userPhoneNumber}.`);
-          const synthesisResponse = await generateAnswer(userMessage, null, conversationHistory, observation);
+          const synthesisResponse = await generateAnswer(null, null, conversationHistory, observation, userPhoneNumber);
           console.log(`LLM synthesis response for ${userPhoneNumber}:`, synthesisResponse);
 
           if (synthesisResponse?.action === 'finalAnswer') {
