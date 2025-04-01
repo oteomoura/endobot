@@ -13,6 +13,7 @@ export async function handleIncomingWhatsAppMessage(req, res) {
 
   let twilioAcknowledged = false;
   let finalMessageToSend = null;
+  let messageContentForUser = '';
 
   try {
     await storeMessage(userPhoneNumber, userMessage, 'user');
@@ -39,25 +40,27 @@ export async function handleIncomingWhatsAppMessage(req, res) {
           console.log(`Observation created for LLM: ${observation}`);
 
           console.log(`Calling LLM again for synthesis with observation for ${userPhoneNumber}.`);
-          llmResponse = await generateAnswer(userMessage, null, conversationHistory, observation);
-          console.log(`LLM synthesis response for ${userPhoneNumber}:`, llmResponse);
+          const synthesisResponse = await generateAnswer(userMessage, null, conversationHistory, observation);
+          console.log(`LLM synthesis response for ${userPhoneNumber}:`, synthesisResponse);
 
-          if (llmResponse?.action === 'finalAnswer') {
+          if (synthesisResponse?.action === 'finalAnswer') {
+            llmResponse = synthesisResponse;
           } else {
-            console.error(`LLM did not return 'finalAnswer' after observation for ${userPhoneNumber}. Action: ${llmResponse?.action}`);
+            console.error(`LLM did not return 'finalAnswer' after observation for ${userPhoneNumber}. Action: ${synthesisResponse?.action}`);
             finalMessageToSend = "Consegui encontrar algumas informações, mas ocorreu um erro ao formatar a resposta final.";
             break;
           }
         } else {
           console.error("LLM 'findDoctorsByCity' action missing city.");
-          llmResponse = { action: 'finalAnswer', message: "Desculpe, ocorreu um erro ao buscar médicos." };
+          finalMessageToSend = "Desculpe, não consegui identificar a cidade para buscar médicos.";
+          break;
         }
 
       case 'askUserForLocation':
-        if(llmResponse.action === 'askUserForLocation') {
-            finalMessageToSend = llmResponse.message || "Por favor, informe a cidade (São Paulo ou Brasília).";
-            console.log(`Action: Asking user ${userPhoneNumber} for location.`);
-            break;
+        if (llmResponse.action === 'askUserForLocation') {
+          finalMessageToSend = llmResponse.message || "Por favor, informe a cidade (São Paulo ou Brasília).";
+          console.log(`Action: Asking user ${userPhoneNumber} for location.`);
+          break;
         }
 
       case 'finalAnswer':
@@ -73,15 +76,14 @@ export async function handleIncomingWhatsAppMessage(req, res) {
                 console.log(`Final answer length OK (${finalMessageToSend?.length || 0} chars) for ${userPhoneNumber}.`);
            }
         } else {
-          console.error(`Action 'finalAnswer' had empty message for ${userPhoneNumber}.`);
+          console.error(`Action 'finalAnswer' had empty message for ${userPhoneNumber}. LLM Response:`, llmResponse);
           finalMessageToSend = "Desculpe, não consegui gerar uma resposta.";
         }
         break;
 
       default:
-        console.error(`Unexpected LLM action for ${userPhoneNumber}:`, llmResponse?.action);
-        messageContentForUser = llmResponse?.message || "Não entendi bem. Pode reformular?";
-        finalMessageToSend = new GuardrailService(messageContentForUser, userMessage).call().substring(0, 1000);
+        console.error(`Unexpected LLM action or invalid response structure for ${userPhoneNumber}:`, llmResponse);
+        finalMessageToSend = "Não entendi bem. Pode reformular?";
         break;
     }
 
@@ -91,25 +93,22 @@ export async function handleIncomingWhatsAppMessage(req, res) {
       console.log(`Sent final message (Action: ${llmResponse?.action || 'fallback'}) to ${userPhoneNumber}.`);
     }
 
-    if (!twilioAcknowledged && !res.headersSent) {
-      res.send('<Response></Response>');
-      console.log(`Acknowledged Twilio at end for ${userPhoneNumber}.`);
-    }
-
   } catch (error) {
     console.error(`Error processing query for ${userPhoneNumber}:`, error);
     if (!twilioAcknowledged && !res.headersSent) {
-      try {
-        await sendWhatsAppMessage(userPhoneNumber, "Desculpe, ocorreu um erro inesperado.");
-      } catch (sendError) {
-        console.error(`Failed to send generic error message to ${userPhoneNumber}:`, sendError);
-      } finally {
-        if (!res.headersSent) {
-          res.send('<Response></Response>');
-        }
-      }
-    } else {
-      console.error(`Error occurred for ${userPhoneNumber}, but Twilio response was likely already sent.`);
+      res.send('<Response></Response>');
+      twilioAcknowledged = true;
+    }
+    try {
+      await sendWhatsAppMessage(userPhoneNumber, "Desculpe, ocorreu um erro interno. Tente novamente mais tarde.");
+    } catch (sendError) {
+      console.error(`Failed to send error message to ${userPhoneNumber}:`, sendError);
+    }
+  } finally {
+    if (!twilioAcknowledged && !res.headersSent) {
+      console.log(`Acknowledging Twilio with empty response (finally block) for ${userPhoneNumber}.`);
+      res.send('<Response></Response>');
     }
   }
 }
+
