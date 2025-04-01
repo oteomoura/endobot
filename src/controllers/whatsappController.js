@@ -4,106 +4,102 @@ import { getRelevantDocuments } from '../services/retrievalService.js';
 import { generateAnswer } from '../services/inferenceService.js';
 import { sendWhatsAppMessage } from '../services/twilioService.js';
 import { GuardrailService } from '../services/guardrailsService.js';
-import { regenerateAndSendShorterAnswer } from '../services/answerProcessingService.js';
-
-async function _handleLongAnswer(res, userPhoneNumber, userMessage, context, conversationHistory, initialAnswer) {
-  console.log(`Answer potentially too long (${initialAnswer.length} chars estimated). Triggering reprocessing.`);
-
-  try {
-    await sendWhatsAppMessage(userPhoneNumber, "Sua resposta está sendo processada e pode levar um pouco mais de tempo. Agradeço a paciência!");
-    console.log(`Sent 'processing' notification to ${userPhoneNumber}.`);
-  } catch (sendError) {
-    console.error(`Failed to send processing message to ${userPhoneNumber}:`, sendError);
-  }
-
-  if (!res.headersSent) {
-      res.send('<Response></Response>');
-      console.log("Acknowledged Twilio while handling long answer.");
-  } else {
-      console.warn("Headers already sent before acknowledging Twilio in _handleLongAnswer.");
-  }
-
-  regenerateAndSendShorterAnswer(userPhoneNumber, userMessage, context, conversationHistory, initialAnswer)
-    .then(() => {
-        console.log(`Background reprocessing initiated successfully for ${userPhoneNumber}.`);
-    })
-    .catch(reprocessingError => {
-        console.error(`Unhandled error during background answer reprocessing for ${userPhoneNumber}:`, reprocessingError);
-    });
-}
+import { handleLongAnswer } from '../services/longAnswerHandlerService.js';
+import { findDoctorsByCity, formatDoctorList } from '../services/doctorRecommendationService.js';
 
 export async function handleIncomingWhatsAppMessage(req, res) {
   const { Body: userMessage, From: userPhoneNumber } = req.body;
-  console.log(`Received WhatsApp message: "${userMessage}" from: ${userPhoneNumber}`);
+  console.log(`Received message from ${userPhoneNumber}.`);
 
   let twilioAcknowledged = false;
 
   try {
     await storeMessage(userPhoneNumber, userMessage, 'user');
-    console.log(`Stored user message from ${userPhoneNumber}.`);
 
+    // Generate context for LLM
     const embedding = await generateEmbedding(userMessage);
     if (!embedding) {
-        console.error(`Failed to generate embedding for the message from ${userPhoneNumber}.`);
-        if (!res.headersSent) {
-            res.send('<Response></Response>');
-            twilioAcknowledged = true;
-        }
-        return;
+      console.error(`Embedding generation failed for ${userPhoneNumber}.`);
+      if (!res.headersSent) { res.send('<Response></Response>'); twilioAcknowledged = true; }
+      return;
     }
-    console.log(`Generated embedding for ${userPhoneNumber}.`);
     const context = await getRelevantDocuments(embedding);
-    console.log(`Retrieved relevant documents for ${userPhoneNumber}.`);
     const conversationHistory = await fetchUserConversationHistory(userPhoneNumber);
-    console.log(`Fetched conversation history for ${userPhoneNumber}.`);
 
-    const initialAnswer = await generateAnswer(userMessage, context, conversationHistory);
-    console.log(`Generated initial LLM answer for ${userPhoneNumber}. Length: ${initialAnswer?.length}`);
+    // Get structured action/response from LLM
+    const llmResponse = await generateAnswer(userMessage, context, conversationHistory);
+    console.log(`LLM action for ${userPhoneNumber}: ${llmResponse?.action}`);
 
-    if (!initialAnswer || initialAnswer.trim() === '' || initialAnswer === 'No content available') {
-        console.error(`LLM did not return a valid answer for ${userPhoneNumber}.`);
-        await sendWhatsAppMessage(userPhoneNumber, "Desculpe, não consegui gerar uma resposta no momento. Tente reformular sua pergunta.");
-         if (!res.headersSent) {
-            res.send('<Response></Response>');
-            twilioAcknowledged = true;
-         }
-        return;
+    let finalMessageToSend = null;
+
+    // Execute based on LLM action
+    switch (llmResponse?.action) {
+      case 'findDoctorsByCity':
+        const city = llmResponse.args?.city;
+        if (city) {
+          const doctorData = await findDoctorsByCity(city);
+          finalMessageToSend = formatDoctorList(doctorData, city);
+        } else {
+          console.error("LLM 'findDoctorsByCity' action missing city.");
+          finalMessageToSend = "Desculpe, ocorreu um erro ao buscar médicos.";
+        }
+        break;
+
+      case 'askUserForLocation':
+        finalMessageToSend = llmResponse.message || "Por favor, informe a cidade (São Paulo ou Brasília).";
+        break;
+
+      case 'finalAnswer':
+        const initialAnswer = llmResponse.message;
+        if (initialAnswer && initialAnswer.trim() !== '') {
+          let finalAnswer = new GuardrailService(initialAnswer, userMessage).call();
+          if (finalAnswer.length > 1000) {
+            // Handle long answer (sends notification, triggers background job)
+            twilioAcknowledged = await handleLongAnswer(res, userPhoneNumber, userMessage, context, conversationHistory, initialAnswer);
+            finalMessageToSend = null; // Background job sends the message
+          } else {
+            finalMessageToSend = finalAnswer; // OK to send directly
+          }
+        } else {
+          console.error(`LLM 'finalAnswer' action had empty message for ${userPhoneNumber}.`);
+          finalMessageToSend = "Desculpe, não consegui gerar uma resposta.";
+        }
+        break;
+
+      default:
+        // Handle unexpected/missing action
+        console.error(`Unexpected LLM action for ${userPhoneNumber}:`, llmResponse?.action);
+        finalMessageToSend = llmResponse?.message || "Não entendi bem. Pode reformular?";
+        finalMessageToSend = new GuardrailService(finalMessageToSend, userMessage).call().substring(0, 1000); // Apply basic cleanup
+        break;
     }
 
-    let finalAnswer = new GuardrailService(initialAnswer, userMessage).call();
-    console.log(`Applied guardrails. Final answer length: ${finalAnswer.length} for ${userPhoneNumber}.`);
+    // Send the final message if one was determined directly
+    if (finalMessageToSend !== null) {
+      await storeMessage(userPhoneNumber, finalMessageToSend, 'bot');
+      await sendWhatsAppMessage(userPhoneNumber, finalMessageToSend);
+    }
 
-    if (finalAnswer.length > 1000) {
-      await _handleLongAnswer(res, userPhoneNumber, userMessage, context, conversationHistory, initialAnswer);
-      twilioAcknowledged = true;
-    } else {
-      console.log(`Answer length OK (${finalAnswer.length} chars). Storing and sending response to ${userPhoneNumber}.`);
-      await storeMessage(userPhoneNumber, finalAnswer, 'bot');
-      await sendWhatsAppMessage(userPhoneNumber, finalAnswer);
-      if (!res.headersSent) {
-          res.send('<Response></Response>');
-          twilioAcknowledged = true;
-      } else {
-           console.warn(`Headers already sent before final Twilio acknowledgement for ${userPhoneNumber}.`);
-      }
+    // Acknowledge Twilio if not already done
+    if (!twilioAcknowledged && !res.headersSent) {
+      res.send('<Response></Response>');
     }
 
   } catch (error) {
-    console.error(`Error processing WhatsApp query for ${userPhoneNumber}:`, error);
+    console.error(`Error processing query for ${userPhoneNumber}:`, error);
+    // Attempt to send error message and acknowledge Twilio if safe
     if (!twilioAcknowledged && !res.headersSent) {
-        try {
-            await sendWhatsAppMessage(userPhoneNumber, "Desculpe, ocorreu um erro inesperado ao processar sua solicitação.");
-            console.log(`Sent generic error message to ${userPhoneNumber}.`);
-        } catch (sendError) {
-            console.error(`Failed to send generic error message to ${userPhoneNumber}:`, sendError);
-        } finally {
-             if (!res.headersSent) {
-                res.send('<Response></Response>');
-                console.log(`Acknowledged Twilio after main catch block for ${userPhoneNumber}.`);
-             }
+      try {
+        await sendWhatsAppMessage(userPhoneNumber, "Desculpe, ocorreu um erro inesperado.");
+      } catch (sendError) {
+        console.error(`Failed to send generic error message to ${userPhoneNumber}:`, sendError);
+      } finally {
+        if (!res.headersSent) {
+          res.send('<Response></Response>');
         }
+      }
     } else {
-        console.error(`Error occurred for ${userPhoneNumber}, but Twilio response was likely already sent.`);
+      console.error(`Error occurred for ${userPhoneNumber}, but Twilio response was likely already sent.`);
     }
   }
 }
