@@ -11,16 +11,14 @@ This project is supported by the **StartBSB** program at **Fundação de Apoio �
 
 ## 🚀 Features
 
-- **AI-Powered Assistance**: Uses NLP and contextual understanding to provide relevant responses.
-- **WhatsApp Integration**: Built to run on WhatsApp for easy accessibility.
-- **Domain-Specific Knowledge**: Trained with information tailored to endometriosis and chronic pain management.
+- **AI-Powered Assistance**: Uses Retrieval-Augmented Generation (RAG) capabilities to provide domain-specific scientific information on endometriosis and women's health.
+- **Agentic behavior**: Endobot can query a curated relational database of trusted healthcare professionals we recommend to our community.
+- **WhatsApp Integration**: Built to run on WhatsApp for easy accessibility to women everywhere.
 - **Context-Aware Conversations**: Maintains conversation history for personalized support.
 
 ## 🔄 Project Status & Roadmap
 
-This project is still in an **active early development stage**. We plan to incorporate Retrieval-Augmented Generation (RAG) features and agentic behavior to enhance the chatbot's ability to provide accurate and context-aware responses.
-
-We use **Docker** for deployment to ensure scalability and ease of maintenance.
+This project is still in an **active early development stage**. While we've completed a lot of the planned features, we're waiting on cellphone carriers to greenlight us so we can go live.
 
 ### Feature Roadmap
 
@@ -29,18 +27,17 @@ We use **Docker** for deployment to ensure scalability and ease of maintenance.
 3. **Transform user message to embedding ✅**
 4. **Fetch relevant documents from the previously generated embeddings ✅**
 5. **Return augmented answer to user ✅**
-6. **Implement agentic behavior to recommend Endometriosis doctors by city 🔶**
-7. **Set up better project structure (Typescript, Unit testing, Lint, CI/CD with GitHub Actions and so on) 🔶**
+6. **Implement agentic behavior to recommend Endometriosis doctors by city ✅**
+7. **Set up better project structure (Typescript, Unit testing, Linting, Monitoring, CI/CD with GitHub Actions and so on) 🔶**
 8. **Provide a demo link 🔶**
 
 ## 🏗️ Tech Stack
 
 - **Backend**: Node.js (Express.js)
-- **Database**: Supabase
-- **Vector Store**: Supabase for storing message embeddings
-- **AI Model Hosting**: Agnostic (At the moment, Together AI).
+- **Relational and Vector Store**: PostgreSQL + PgVector (Supabase)
+- **Embedding and inference model hosting**: Whoever provides us with the best value (At the moment, we integrate with Together AI).
 - **Messaging API**: Twilio (WhatsApp integration)
-- **Deployment**: Docker on Digital Ocean
+- **Deployment**: Docker on VPS servers.
 
 ## 📖 Getting Started
 
@@ -78,7 +75,7 @@ Ensure you have the following installed:
 
 ### 1. Why not just use the OpenAI models and library?
 
-We want to keep the project as flexible as possible to allow for quick iteration and adaptation to user needs. By not tying ourselves exclusively to OpenAI, we retain the ability to explore a variety of models, including those that are more cost-effective or better suited for specialized tasks. Additionally, avoiding strict dependency on OpenAI at this stage allows us to maintain greater control over data privacy, performance tuning, and deployment strategies. However, this decision is not final—we remain open to integrating OpenAI's tools if they align well with our long-term goals and user needs.
+Flexibility. By not tying ourselves exclusively to OpenAI, we retain the ability to explore a variety of models, including those that are more cost-effective or better suited for specialized tasks. Additionally, avoiding strict dependency on OpenAI at this stage allows us to maintain greater control over data privacy, performance tuning, and deployment strategies.
 
 ### 2. Can I contribute?
 
@@ -92,8 +89,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - **Endopolítica Community** – for their insights and continuous support.
 - **FAP/DF & StartBSB** – for funding and supporting the project.
-- **Open-source Contributors** – for making this initiative possible!
-
+- 
 ---
 
 💙 _Together, we can provide better support for those navigating endometriosis and chronic pain!_
