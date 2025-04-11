@@ -20,16 +20,10 @@ This project is supported by the **StartBSB** program at **Fundação de Apoio �
 
 This project is still in an **active early development stage**. While we've completed a lot of the planned features, we're waiting on cellphone carriers to greenlight us so we can go live.
 
-### Feature Roadmap
+### Roadmap
 
-1. **Read content from text file, generate embedding representation, and persist it to Supabase ✅**
-2. **Receive Whatsapp message ✅**
-3. **Transform user message to embedding ✅**
-4. **Fetch relevant documents from the previously generated embeddings ✅**
-5. **Return augmented answer to user ✅**
-6. **Implement agentic behavior to recommend Endometriosis doctors by city ✅**
-7. **Set up better project structure (Typescript, Unit testing, Linting, Monitoring, CI/CD with GitHub Actions and so on) 🔶**
-8. **Provide a demo link 🔶**
+1. **Set up better project structure (Typescript, Unit testing, Linting, Monitoring, CI/CD with GitHub Actions and so on) 🔶**
+2. **Provide a demo link 🔶**
 
 ## 🏗️ Tech Stack
 
@@ -38,6 +32,61 @@ This project is still in an **active early development stage**. While we've comp
 - **Embedding and inference model hosting**: Whoever provides us with the best value (At the moment, we integrate with Together AI).
 - **Messaging API**: Twilio (WhatsApp integration)
 - **Deployment**: Docker on VPS servers.
+
+## 📐 Architecture Overview
+
+**Key Architectural Decisions:**
+
+*   **Separation of Concerns:** The primary logic for handling messages is extracted into a dedicated `messageProcessingService`, keeping the `whatsappController` lean and focused on HTTP request/response handling and basic orchestration.
+*   **Modular Services:** Functionality is broken down into distinct, single-responsibility services (e.g., `embeddingService`, `retrievalService`, `inferenceService`, `conversationService`, `doctorRecommendationService`) to promote reusability and maintainability.
+*   **Retrieval-Augmented Generation (RAG):** The core answering mechanism involves retrieving relevant context from a vector store (`retrievalService`) based on the user message embedding (`embeddingService`) before generating a response (`inferenceService`).
+*   **Agentic Capabilities:** The system uses the LLM (`inferenceService`) not just for answering but also to determine and execute specific actions (like `findDoctorsByCity`), interacting with other services (`doctorRecommendationService`) and potentially re-prompting the LLM with new observations.
+*   **Stateful Conversations:** User conversation history is stored (`conversationService`) and provided back to the LLM to maintain context across multiple interactions.
+*   **Modular External API Integration:** Endobot isolates interactions with external services (like messaging APIs and AI models) into dedicated modules. This abstraction makes it easier to adapt or switch providers (e.g., Twilio, Together AI) to optimize for cost or features, providing crucial flexibility for the project.
+
+The following diagram illustrates the high-level flow of an incoming WhatsApp message:
+
+```mermaid
+sequenceDiagram
+    participant User as WhatsApp User
+    participant Twilio
+    participant Controller as whatsappController
+    participant Processor as messageProcessingService
+    participant Services as (Embedding, Retrieval, LLM, Doctors, etc.)
+    participant Responder as (Guardrails, Long Answer Handler)
+    participant TwilioAPI as twilioService
+
+    User->>+Twilio: Sends Message
+    Twilio->>+Controller: POST /whatsapp (webhook)
+    Controller->>+Processor: processIncomingMessage(...)
+    Note over Processor: Orchestrates core logic
+
+    Processor->>+Services: Fetch context, history & generate action/initial response
+    Services-->>-Processor: Action & Data (e.g., LLM response, doctor info)
+
+    alt Specific Action Required (e.g., Find Doctors)
+        Processor->>+Services: Execute action (e.g., call LLM again with doctor info)
+        Services-->>-Processor: Final Answer Data
+    end
+
+    Processor->>+Responder: Format & Apply Guardrails/Handle Long Answers
+    Responder-->>-Processor: Final Message(s) & Acknowledgement Status
+
+    Processor-->>-Controller: {finalMessageToSend, twilioAcknowledged}
+
+    alt finalMessageToSend exists
+        Controller->>+TwilioAPI: sendWhatsAppMessage(...)
+        TwilioAPI-->>-Controller: ack
+        Controller-->>TwilioAPI: -
+        TwilioAPI->>+Twilio: Send API Call
+        Twilio-->>-User: Delivers Bot Message(s)
+    end
+
+    alt Response not yet sent to Twilio
+       Controller->>-Twilio: HTTP 200 OK <Response/> (Acknowledge)
+    end
+
+```
 
 ## 📖 Getting Started
 
@@ -71,15 +120,15 @@ Ensure you have the following installed:
    docker compose build && docker compose up -d 
    ```
 
-## ❓ FAQ
+## 📜 Change Log
 
-### 1. Why not just use the OpenAI models and library?
-
-Flexibility. By not tying ourselves exclusively to OpenAI, we retain the ability to explore a variety of models, including those that are more cost-effective or better suited for specialized tasks. Additionally, avoiding strict dependency on OpenAI at this stage allows us to maintain greater control over data privacy, performance tuning, and deployment strategies.
-
-### 2. Can I contribute?
-
-We'll release a contribution guide soon! 
+- **v0.1 (Initial Development):**
+  - Read content from a text file, generate an embedding representation, and persist it to Supabase.
+  - Receive WhatsApp messages via Twilio webhook.
+  - Transform user messages to embeddings.
+  - Fetch relevant documents from the vector store based on user message embedding.
+  - Return augmented answers to users.
+  - Implement agentic behavior to recommend Endometriosis doctors by city.
 
 ## 📜 License
 
@@ -89,7 +138,15 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - **Endopolítica Community** – for their insights and continuous support.
 - **FAP/DF & StartBSB** – for funding and supporting the project.
-- 
----
 
 💙 _Together, we can provide better support for those navigating endometriosis and chronic pain!_
+
+## ❓ FAQ
+
+### 1. Why not just use the OpenAI models and library?
+
+Flexibility. By not tying ourselves exclusively to OpenAI, we retain the ability to explore a variety of models, including those that are more cost-effective or better suited for specialized tasks. Additionally, avoiding strict dependency on OpenAI at this stage allows us to maintain greater control over data privacy, performance tuning, and deployment strategies.
+
+### 2. Can I contribute?
+
+We'll release a contribution guide soon!
