@@ -12,7 +12,7 @@ export async function processIncomingMessage(userPhoneNumber, userMessage, res) 
   let twilioAcknowledged = false;
 
   try {
-    const embedding = await generateEmbedding(userMessage);
+    const embedding = await generateEmbedding(userMessage, userPhoneNumber);
     if (!embedding) {
       console.error(`Embedding generation failed for ${userPhoneNumber}.`);
       return { finalMessageToSend: null, twilioAcknowledged: false };
