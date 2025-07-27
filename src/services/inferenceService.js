@@ -73,7 +73,7 @@ export async function generateAnswer(userMessage, context, conversationHistory, 
   // Define the LLM operation
   const llmOperation = async () => {
     const response = await togetherAiClient.post(COMPLETIONS_API_URL, {
-      model: 'meta-llama/Llama-3.3-70B-Instruct-Turbo-Free',
+      model: 'meta-llama/Llama-3.1-8B-Instruct-Turbo',
       response_format: { type: "json_object" },
       messages: messages,
       max_tokens: 500,
