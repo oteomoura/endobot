@@ -13,11 +13,14 @@ export async function regenerateAndSendShorterAnswer(userPhoneNumber, originalUs
 
     let shorterFinalAnswer = '';
 
-    if (!shorterAnswerRaw || shorterAnswerRaw.trim() === '' || shorterAnswerRaw === 'No content available') {
+    // Extract the message from the response object
+    const shorterAnswerMessage = shorterAnswerRaw?.message || shorterAnswerRaw;
+
+    if (!shorterAnswerMessage || shorterAnswerMessage.trim() === '' || shorterAnswerMessage === 'No content available') {
       console.warn("[Reprocessing] Summarization attempt failed via LLM or returned empty. Truncating original answer.");
       shorterFinalAnswer = longAnswer.slice(0, 997) + "..."; // Truncate original as fallback
     } else {
-      shorterFinalAnswer = new GuardrailService(shorterAnswerRaw, originalUserMessage).call();
+      shorterFinalAnswer = new GuardrailService(shorterAnswerMessage, originalUserMessage).call();
     }
 
     // Final check on length and handle potential empty string after guardrails

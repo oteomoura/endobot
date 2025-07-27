@@ -77,7 +77,7 @@ export async function generateAnswer(userMessage, context, conversationHistory, 
       response_format: { type: "json_object" },
       messages: messages,
       max_tokens: 500,
-      temperature: 0.5,
+      temperature: 0.3,
     });
 
     const rawResponseContent = response?.data?.choices?.[0]?.message?.content;
